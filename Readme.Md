@@ -1,4 +1,9 @@
-utilizando o flask shell
+Primeiro rode :
+
+pip3 install -r requirements.txt 
+
+
+Depois utilizando o flask shell
 rode :
 
 db.create_all()
