@@ -30,12 +30,26 @@ def add_product():
 def delete_product(product_id):
   #Recuperar prod for database
   #verify is product exists
+  #se sim deletar
   product = Product.query.get(product_id)
   if product:
     db.session.delete(product)
     db.session.commit()
     return jsonify({"message": "Product deleted successfully"})
   return jsonify ({"message": "Product not found"}), 404
+
+@app.route('/products/<int:product_id>', methods=["GET"])
+def get_product_details(product_id):
+  print("te")
+  product = Product.query.get(product_id)
+  if product:
+    return jsonify({
+      "id": product.id,
+      "name": product.nome,
+      "price": product.price,
+      "description": product.description
+    }), 200 
+  return jsonify({"message": "Product not found"}), 404
 
 #Definir rota raiz
 @app.route('/')
