@@ -59,6 +59,21 @@ def update_product(product_id):
   db.session.commit()
   return jsonify({'message': 'Product updated successfully'})
 
+@app.route('/products/', methods=['GET'])
+def get_products():
+  products = Product.query.all()
+  product_list =[]
+  for product in products:
+    product_data= {
+      "id": product.id,
+      "nome": product.nome,
+      "price": product.price,
+      "description": product.description
+    }
+    print(product)
+    product_list.append(product_data)
+  return jsonify(product_list)
+
 @app.route('/products/<int:product_id>', methods=["GET"])
 def get_product_details(product_id):
   print("aqui vamos trazer os producto escolhido")
@@ -66,7 +81,7 @@ def get_product_details(product_id):
   if product:
     return jsonify({
       "id": product.id,
-      "name": product.nome,
+      "nome": product.nome,
       "price": product.price,
       "description": product.description
     }), 200 
