@@ -1,13 +1,22 @@
 #importação
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+from flask_login import UserMixin
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ecommerce.db'
 
 db = SQLAlchemy(app)
+CORS(app)
 
-#Modelagem 
+
+#Modelagem
+class User(db.Model, UserMixin): 
+  id = db.Column(db.Integer, primary_key=True)
+  username = db.Column(db.String(80), nullable=False, unique=True)
+  password = db.Column(db.String(80), nullable=True)
+  
 #Produto (id, name, price, description)
 class Product(db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -68,7 +77,7 @@ def get_products():
       "id": product.id,
       "nome": product.nome,
       "price": product.price,
-      "description": product.description
+      #"description": product.description
     }
     print(product)
     product_list.append(product_data)
