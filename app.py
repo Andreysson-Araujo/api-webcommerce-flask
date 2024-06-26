@@ -2,12 +2,16 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_login import UserMixin
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = "dinossauro_123"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ecommerce.db'
 
+login_manager = LoginManager()
 db = SQLAlchemy(app)
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 CORS(app)
 
 
@@ -20,15 +24,38 @@ class User(db.Model, UserMixin):
 #Produto (id, name, price, description)
 class Product(db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  nome = db.Column(db.String(120), nullable=False)
+  name = db.Column(db.String(120), nullable=False)
   price = db.Column(db.Float, nullable=False)
   description = db.Column(db.Text, nullable=True)
 
+#autneitcação
+@login_manager.user_loader
+def load_user(user_id):
+  return User.query.get(int(user_id))
+
+@app.route('/login', methods=["POST"])
+def login():
+  data = request.json
+ 
+  user = User.query.filter_by(username=data.get("username")).first()
+
+  if user and data.get("password") == user.password:
+      login_user(user)
+      return jsonify({"message": "Logged in successfully"})
+  return jsonify({"message": "Unauthorized. Invalid credentials"}), 401
+
+@app.route('/logout', methods=["POST"])
+@login_required
+def logout():
+  logout_user()
+  return jsonify({"Message": "Logout Successfully"})
+
 @app.route('/products/add', methods=["POST"])
+@login_required
 def add_product():
   data = request.json
-  if 'nome' in data and 'price' in data:
-    product = Product(nome=data["nome"], price=data["price"], description=data.get("description", ""))
+  if 'name' in data and 'price' in data:
+    product = Product(name=data["name"], price=data["price"], description=data.get("description", ""))
     db.session.add(product)
     db.session.commit()
     return jsonify({"message" : "Product added successfully"})
@@ -36,6 +63,7 @@ def add_product():
 
 
 @app.route('/products/delete/<int:product_id>', methods=["DELETE"])
+@login_required
 def delete_product(product_id):
   #Recuperar prod for database
   #verify is product exists
@@ -56,8 +84,8 @@ def update_product(product_id):
     return jsonify({"message": "Product not found"}), 404
   
   data = request.json
-  if 'nome' in data:
-    product.nome = data['nome']
+  if 'name' in data:
+    product.name = data['name']
   
   if "price" in data:
     product.price = data["price"]
@@ -75,7 +103,7 @@ def get_products():
   for product in products:
     product_data= {
       "id": product.id,
-      "nome": product.nome,
+      "name": product.name,
       "price": product.price,
       #"description": product.description
     }
@@ -84,13 +112,14 @@ def get_products():
   return jsonify(product_list)
 
 @app.route('/products/<int:product_id>', methods=["GET"])
+@login_required
 def get_product_details(product_id):
   print("aqui vamos trazer os producto escolhido")
   product = Product.query.get(product_id)
   if product:
     return jsonify({
       "id": product.id,
-      "nome": product.nome,
+      "name": product.name,
       "price": product.price,
       "description": product.description
     }), 200 
