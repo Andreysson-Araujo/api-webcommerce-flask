@@ -173,7 +173,6 @@ def view_cart():
       "product_id" : cart_item.product_id,
       "product_name" : product.name,
       "product_price": product.price
-
     })
   return jsonify(cart_content)
 
@@ -185,13 +184,9 @@ def checkout():
   for cart_item in cart_items:
     db.session.delete(cart_item)
   db.session.commit()
-  return jsonify({'message': 'Checkout succesfully'})
+  return jsonify({'message': 'Checkout succesfully. Cart has been cleared'})
 
 
-#Definir rota raiz
-@app.route('/')
-def hello_world():
-  return 'Hello World'
 
 if __name__ == "__main__":
   app.run(debug=True)
